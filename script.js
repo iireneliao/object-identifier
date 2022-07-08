@@ -2,57 +2,85 @@
 // Made following the tutorial here: https://www.youtube.com/watch?v=kwcillcWOg0
 
 /*
-global createCanvas, background, ml5, createButton, nf, createDiv, mouseIsPressed, strokeWeight, mouseX, mouseY, pmouseX, pmouseY, line, createCapture, VIDEO, width, image, height, filter, THRESHOLD
+global createCanvas, background, image, createCapture, VIDEO, textSize, textAlign, fill, text, CENTER, height, width, ml5
 */
 
 // Video
-let clearButton;
-let canvas;
-
-let doodleClassifier;
-let resultsDiv;
-
 let video;
+let label = "waiting...";
+let classifier;
+let modelURL = 'https://teachablemachine.withgoogle.com/models/AAzVzbZI_/';
+
+// STEP 1: Load the model!
+function preload()
+{
+  classifier = ml5.imageClassifier(modelURL + 'model.json');
+}
 
 function setup() {
-  canvas = createCanvas(400, 400);
-  clearButton = createButton('clear');
-  clearButton.mousePressed(clearCanvas);
-  background(255);
-  doodleClassifier = ml5.imageClassifier('DoodleNet', modelReady);
-  resultsDiv = createDiv('model loading');
-  // video = createCapture(VIDEO);
-  // video.hide();
+  createCanvas(640, 520);
+  // Create the video
+  video = createCapture(VIDEO);
+  video.hide();
+
+  // STEP 2: Start classifying
+  classifyVideo();
 }
 
-function modelReady() {
-  console.log('model loaded');
-  doodleClassifier.classify(canvas, gotResults);
-}
-
-function gotResults(error, results) {
-  if (error) {
-    console.error(error);
-    return;
-  }
-  console.log(results);
-  let content = `${results[0].label}
-                 ${nf(100*results[0].confidence, 2, 0)}%<br/>
-                 ${results[1].label}
-                 ${nf(100*results[1].confidence, 2, 0)}%`;
-  resultsDiv.html(content);
-  doodleClassifier.classify(canvas, gotResults);
-}
-
-function clearCanvas() {
-  background(255);
+// STEP 2 classify!
+function classifyVideo()
+{
+  classifier.classify(video, gotResults);
 }
 
 function draw() {
-  // image(video, 0, 0, width, height);
-  // filter(THRESHOLD, 0.7);
-  if (mouseIsPressed) {
-    strokeWeight(16);
-    line(mouseX, mouseY, pmouseX, pmouseY);
-  }
+  background(0);
+  
+  // Draw the video
+  image(video, 0, 0);
+
+  // STEP 4: Draw the label
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  fill(255);
+  text(label, width/2, height - 16);
+  
+  let emoji = '🤷🏻‍♀️';
+  
+  if (label == 'toad')
+    {
+      emoji = '🍄';
+    }
+  else if (label == 'waterbottle')
+    {
+      emoji = '💧';
+    }
+  else if (label == 'flower pot')
+    {
+      emoji = '🌷';
+    }
+  else if (label == 'headphones')
+    {
+      emoji = '🎧';
+    }
+  else if (label == 'bad biddie')
+    {
+      emoji = '✨';
+    }
+  
+  textSize(256);
+  text(emoji, width/2, height/2);
+  
+}
+
+// STEP 3: Get the classification!
+function gotResults(error, results)
+{
+  if (error)
+    {
+      console.error(error);
+      return;
+    }
+  label = results[0].label;
+  classifyVideo();
 }
